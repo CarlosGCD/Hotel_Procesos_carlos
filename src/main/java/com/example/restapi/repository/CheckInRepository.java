@@ -22,4 +22,5 @@ public interface CheckInRepository extends JpaRepository<CheckIn, Long> {
 
     // Buscar check-ins por documento del huésped
     List<CheckIn> findByDocumentoNumero(String documentoNumero);
+
 }

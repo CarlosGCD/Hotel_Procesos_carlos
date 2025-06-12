@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -160,4 +161,19 @@ public class CheckInServiceTest {
         checkIn.setNumHuespedes(3);
         assertEquals(3, checkIn.getNumHuespedes());
     }
+
+    @Test
+    public void buscarPorReservaId_devuelveListaDeCheckIn() {
+       
+        Long reservaId = 8L;
+        List<CheckIn> mockCheckIns = List.of(new CheckIn()); 
+        when(checkInRepository.findByReservaId(reservaId)).thenReturn(mockCheckIns);
+
+        List<CheckIn> resultado = checkInService.buscarPorReservaId(reservaId);
+
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        verify(checkInRepository, times(1)).findByReservaId(reservaId);
+    }
+
 }

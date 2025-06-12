@@ -26,6 +26,9 @@
                 <option value="suite">Suite</option>
             </select>
             <input type="number" id="precioMax" placeholder="Precio máximo" oninput="filtrarPorPrecio()">
+            <input type="number" id="busquedaReserva" placeholder="Buscar por reserva ID" oninput="buscarPorReserva()" style="width: 160px;">
+
+
         </div>
 
         <!-- Tabla de habitaciones -->
@@ -633,32 +636,74 @@
 
         function actualizarTablaReservas(reservas) {
             const tabla = document.getElementById("reservas-list");
-
-            // Elimina todas las filas anteriores
             tabla.innerHTML = "";
 
-            // Añade nuevas filas
+            if (reservas.length === 0) {
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: gray;">No hay reservas encontradas</td>
+                    </tr>
+                `;
+                return;
+            }
+
             reservas.forEach(reserva => {
                 const metodoPago = reserva.metodoPago || 'N/A';
                 const metodoPagoCapitalizado = metodoPago.charAt(0).toUpperCase() + metodoPago.slice(1).toLowerCase();
-                const estadoClass = reserva.estado.toLowerCase().replace(/\s+/g, '-');
+
+                const estadoTexto = reserva.estado || 'N/A';
+                const estadoClass = estadoTexto.toLowerCase().replace(/\s+/g, '-');
+
                 const totalPagar = reserva.totalPagar != null ? reserva.totalPagar.toFixed(2) : '0.00';
-                console.log(`Reserva ID ${reserva.id}: totalPagar = ${totalPagar}`);
-                const row = `<tr>
-                    <td>${reserva.id || 'N/A'}</td>
-                    <td>${reserva.habitacion?.numero || 'N/A'}</td>
-                    <td>${reserva.clienteId || 'N/A'}</td>
-                    <td>${formatearFecha(reserva.fechaCheckIn)}</td>
-                    <td>${formatearFecha(reserva.fechaCheckOut)}</td>
-                    <td>${totalPagar}</td>
-                    <td class="${estadoClass}">${reserva.estado || 'N/A'}</td>
-                    <td>${metodoPagoCapitalizado}</td>
-                </tr>`;
+
+                const row = `
+                    <tr>
+                        <td>${reserva.reservaId || 'N/A'}</td>
+                        <td>${reserva.numeroHabitacion || 'N/A'}</td>
+                        <td>${reserva.nombreHuesped || 'N/A'} ${reserva.apellidosHuesped || ''}</td>
+                        <td>${formatearFecha(reserva.fechaCheckIn)}</td>
+                        <td>${formatearFecha(reserva.fechaCheckOut)}</td>
+                        <td>${totalPagar}</td>
+                        <td class="${estadoClass}">${estadoTexto}</td>
+                        <td>${metodoPagoCapitalizado}</td>
+                    </tr>
+                `;
                 tabla.innerHTML += row;
             });
         }
 
+
+
         setInterval(verificarNuevasReservas, 10000);
+
+        async function buscarPorReserva() {
+            const reservaId = document.getElementById("busquedaReserva").value;
+            if (!reservaId) {
+                await cargarReservas();
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/reservas/buscarPorReserva?reservaId=${reservaId}`);
+
+                if (response.status === 204) {
+                    actualizarTablaReservas([]);
+                    return;
+                }
+
+                if (!response.ok) throw new Error("Error al buscar la reserva");
+
+                const datos = await response.json();
+                actualizarTablaReservas(datos);
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+
+
+
+
     </script>
 </body>
 </html>

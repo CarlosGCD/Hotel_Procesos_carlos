@@ -2,6 +2,7 @@ package com.example.restapi.controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.List; //
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,14 +10,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping; //
+import org.springframework.web.bind.annotation.PathVariable; //
+import org.springframework.web.bind.annotation.RequestParam; //
 import com.example.restapi.model.CheckIn;
 import com.example.restapi.service.CheckInService;
+import com.example.restapi.repository.CheckInRepository; //
 
 @RestController
 @RequestMapping("/api/reservas")
 public class CheckInController {
 
     private final CheckInService checkInService;
+
+    @Autowired //
+    private CheckInRepository checkInRepository; //
+
 
     @Autowired
     public CheckInController(CheckInService checkInService) {
@@ -60,4 +69,15 @@ public class CheckInController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error inesperado: " + e.getMessage());
         }
     }
+
+    
+    @GetMapping("/buscarPorReserva")
+    public ResponseEntity<List<CheckIn>> buscarPorReserva(@RequestParam Long reservaId) {
+        List<CheckIn> reservas = checkInService.buscarPorReservaId(reservaId);
+        if (reservas.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(reservas);
+    }
+
 }

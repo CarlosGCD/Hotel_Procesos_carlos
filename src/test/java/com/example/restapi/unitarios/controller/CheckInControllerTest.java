@@ -14,6 +14,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Collections;
+
+import org.springframework.http.ResponseEntity;
+
+import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.http.HttpStatus;
+
+
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -255,4 +264,31 @@ public class CheckInControllerTest {
 
         verify(checkInService, times(1)).realizarCheckIn(any(CheckIn.class));
     }
+
+    @Test
+    public void buscarPorReserva_conResultados_devuelveListaDeCheckIn() {
+
+        Long reservaId = 8L;
+        List<CheckIn> mockCheckIns = List.of(new CheckIn()); 
+        when(checkInService.buscarPorReservaId(reservaId)).thenReturn(mockCheckIns);
+     
+        ResponseEntity<List<CheckIn>> response = checkInController.buscarPorReserva(reservaId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+    }
+
+    @Test
+    public void buscarPorReserva_sinResultados_devuelveNoContent() {
+       
+        Long reservaId = 999L;
+        when(checkInService.buscarPorReservaId(reservaId)).thenReturn(List.of());
+
+        ResponseEntity<List<CheckIn>> response = checkInController.buscarPorReserva(reservaId);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
 }
