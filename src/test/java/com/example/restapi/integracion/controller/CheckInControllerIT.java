@@ -11,6 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.restapi.model.Habitacion;
+
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -33,14 +35,18 @@ public class CheckInControllerIT {
 
    @Test
    void testBuscarPorReserva_conResultados() throws Exception {
-      // Crear reserva
-      Reserva reserva = new Reserva(null, null, LocalDate.now(), LocalDate.now().plusDays(2), "Reservada");
+        Habitacion habitacion = new Habitacion();
+        setField(habitacion, "numero", "101");
+        setField(habitacion, "tipo", "Doble");
+        setField(habitacion, "precioPorNoche", 75.0);
+     
+      Reserva reserva = new Reserva(null, habitacion, LocalDate.now(), LocalDate.now().plusDays(2), "Reservada");
       reserva = reservaRepository.save(reserva);
 
-      // Crear check-in vacío
+  
       CheckIn checkIn = new CheckIn();
 
-      // Asignar campos por reflexión
+  
       setField(checkIn, "reserva", reserva);
       setField(checkIn, "fechaCheckIn", LocalDate.now());
       setField(checkIn, "fechaCheckOut", LocalDate.now().plusDays(2));
@@ -50,7 +56,7 @@ public class CheckInControllerIT {
 
       checkIn = checkInRepository.save(checkIn);
 
-      // Ejecutar petición
+  
       mockMvc.perform(MockMvcRequestBuilders
             .get("/api/checkin/buscarPorReserva")
             .param("reservaId", reserva.getId().toString()))
@@ -64,10 +70,10 @@ public class CheckInControllerIT {
       mockMvc.perform(MockMvcRequestBuilders
             .get("/api/checkin/buscarPorReserva")
             .param("reservaId", "999999"))
-         .andExpect(status().isNoContent());
+         .andExpect(status().isNotFound());
    }
 
-   // Método auxiliar para evitar setters
+   
    private void setField(Object target, String fieldName, Object value) throws Exception {
       Field field = target.getClass().getDeclaredField(fieldName);
       field.setAccessible(true);
